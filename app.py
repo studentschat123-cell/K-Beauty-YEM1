@@ -24,6 +24,14 @@ db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
+# ✅ إضافة كود منع الكاش للطلبات
+@app.after_request
+def add_header(response):
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, public, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
+
 # نموذج المستخدم
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -134,27 +142,23 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
-# الصفحة الرئيسية (Dashboard) - مصححة
+# الصفحة الرئيسية (Dashboard)
 @app.route('/')
 @login_required
 def dashboard():
-    # تصحيح: استخدام filter() بدلاً من filter_by() للمقارنات
     products = Product.query.filter(Product.quantity > 0).all()
     total_products = len(products)
     total_quantity = sum(p.quantity for p in products)
     total_revenue_potential = sum(p.sell_price * p.quantity for p in products)
-    total_profits = sum(p.profit * p.quantity for p in products)  # أرباح محتملة
+    total_profits = sum(p.profit * p.quantity for p in products)
     top_products = Product.query.order_by(Product.sell_price.desc()).limit(5).all()
     low_stock = Product.query.filter(Product.quantity <= 5, Product.quantity > 0).all()
-    
-    # بيانات للرسوم (مبيعات، أرباح)
+
     top_names = [p.name for p in top_products]
     top_prices = [p.sell_price for p in top_products]
     profits_data = [p.profit for p in top_products]
-    
-    # إحصائيات المبيعات
     total_sales = sum(purchase.final_amount for purchase in Purchase.query.all())
-    
+
     return render_template('dashboard.html',
                           total_products=total_products,
                           total_quantity=total_quantity,
@@ -196,17 +200,16 @@ def product_page(id=None):
                 notes=form.notes.data
             )
             db.session.add(product)
-        
-        # رفع الصورة
+
         if 'image' in request.files and allowed_file(request.files['image'].filename):
             filename = secure_filename(form.image.data.filename)
             form.image.data.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             product.image = filename
-        
+
         db.session.commit()
         flash('تم حفظ المنتج بنجاح!')
         return redirect(url_for('stock'))
-    
+
     if product:
         form.name.data = product.name
         form.category.data = product.category
@@ -214,7 +217,7 @@ def product_page(id=None):
         form.sell_price.data = product.sell_price
         form.quantity.data = product.quantity
         form.notes.data = product.notes
-    
+
     return render_template('product_form.html', form=form, product=product, is_edit=bool(product))
 
 # المخزون
@@ -233,18 +236,17 @@ def delete_product(id):
     flash('تم حذف المنتج بنجاح!')
     return redirect(url_for('stock'))
 
-# الشراء - مصحح
+# الشراء
 @app.route('/purchase', methods=['GET', 'POST'])
 @login_required
 def purchase():
     form = PurchaseForm()
     if form.validate_on_submit():
-        # جلب المنتجات من JSON (من JS)
         items_data = json.loads(request.form.get('items', '[]'))
         total_price = sum(item['price'] * item['quantity'] for item in items_data)
         discount = form.discount.data
         final_amount = total_price - discount
-        
+
         purchase = Purchase(
             customer_name=form.customer_name.data,
             total_price=total_price,
@@ -252,8 +254,8 @@ def purchase():
             final_amount=final_amount
         )
         db.session.add(purchase)
-        db.session.flush()  # للحصول على ID
-        
+        db.session.flush()
+
         for item in items_data:
             purchase_item = PurchaseItem(
                 purchase_id=purchase.id,
@@ -261,17 +263,15 @@ def purchase():
                 quantity=item['quantity']
             )
             db.session.add(purchase_item)
-            # تحديث الكمية
             prod = Product.query.get(item['id'])
             prod.quantity -= item['quantity']
             if prod.quantity <= 0:
                 db.session.delete(prod)
-        
+
         db.session.commit()
         flash('تم تسجيل الشراء بنجاح!')
         return redirect(url_for('invoices'))
-    
-    # تصحيح: استخدام filter() بدلاً من filter_by()
+
     products = Product.query.filter(Product.quantity > 0).all()
     return render_template('purchase.html', form=form, products=products)
 
