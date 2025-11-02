@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="text-center">{% if is_edit %}تعديل{% else %}إضافة{% endif %} منتج</h2>
+<form method="POST" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                {{ form.name.label(class="form-label") }}
+                {{ form.name(class="form-control") }}
+            </div>
+            <div class="mb-3">
+                {{ form.category.label(class="form-label") }}
+                {{ form.category(class="form-control") }}
+            </div>
+            <div class="mb-3">
+                {{ form.buy_price_usd.label(class="form-label") }}
+                {{ form.buy_price_usd(class="form-control", id="usd", oninput="convertToSAR()") }}
+            </div>
+            <div class="mb-3">
+                <label class="form-label">سعر الشراء (ريال سعودي)</label>
+                <input type="number" step="0.01" class="form-control" id="sar" readonly>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                {{ form.sell_price.label(class="form-label") }}
+                {{ form.sell_price(class="form-control") }}
+            </div>
+            <div class="mb-3">
+                {{ form.quantity.label(class="form-label") }}
+                {{ form.quantity(class="form-control") }}
+            </div>
+            <div class="mb-3">
+                {{ form.image.label(class="form-label") }}
+                {{ form.image(class="form-control") }}
+                {% if product and product.image %}
+                <img src="{{ url_for('static', filename='uploads/' + product.image) }}" alt="صورة" class="img-thumbnail mt-2" style="max-width: 200px;">
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="mb-3">
+        {{ form.notes.label(class="form-label") }}
+        {{ form.notes(class="form-control") }}
+    </div>
+    {{ form.submit(class="btn btn-primary") }}
+    <a href="{{ url_for('stock') }}" class="btn btn-secondary">إلغاء</a>
+</form>
+
+<script>
+    function convertToSAR() {
+        const usd = parseFloat(document.getElementById('usd').value) || 0;
+        document.getElementById('sar').value = (usd * 3.75).toFixed(2);
+    }
+</script>
+{% endblock %}

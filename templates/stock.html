@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<h2><i class="fas fa-warehouse"></i> المخزون</h2>
+<a href="{{ url_for('product_page') }}" class="btn btn-primary mb-3"><i class="fas fa-plus"></i> إضافة جديد</a>
+<input type="text" id="search" placeholder="ابحث..." class="form-control mb-3">
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>الصورة</th>
+                <th>الاسم</th>
+                <th>التصنيف</th>
+                <th>سعر البيع</th>
+                <th>الكمية</th>
+                <th>الربح</th>
+                <th>إجراءات</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            {% for product in products %}
+            <tr>
+                <td>{% if product.image %}<img src="{{ url_for('static', filename='uploads/' + product.image) }}" style="width:50px;">{% endif %}</td>
+                <td>{{ product.name }}</td>
+                <td>{{ product.category }}</td>
+                <td>{{ "%.2f" % product.sell_price }} ريال</td>
+                <td><span class="badge {{ 'bg-danger' if product.quantity <= 5 else 'bg-success' }}">{{ product.quantity }}</span></td>
+                <td>{{ "%.2f" % product.profit }} ريال</td>
+                <td>
+                    <a href="{{ url_for('product_page', id=product.id) }}" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></a>
+                    <a href="{{ url_for('delete_product', id=product.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('تأكيد?')"><i class="fas fa-trash"></i></a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<script>
+    document.getElementById('search').addEventListener('keyup', function() {
+        const filter = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#tableBody tr');
+        rows.forEach(row => row.style.display = row.textContent.toLowerCase().includes(filter) ? '' : 'none');
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h3 class="card-title text-center"><i class="fas fa-user-plus"></i> تسجيل حساب جديد</h3>
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.username.label(class="form-label") }}
+                        {{ form.username(class="form-control") }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.password.label(class="form-label") }}
+                        {{ form.password(class="form-control") }}
+                    </div>
+                    {{ form.submit(class="btn btn-success w-100") }}
+                </form>
+                <p class="text-center mt-3">لديك حساب؟ <a href="{{ url_for('login') }}">دخول</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

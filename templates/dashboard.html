@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="text-center mb-4"><i class="fas fa-tachometer-alt"></i> لوحة التحكم</h1>
+<div class="row">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5>عدد المنتجات</h5>
+                <h2>{{ total_products }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5>الكمية المتاحة</h5>
+                <h2>{{ total_quantity }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h5>إجمالي المبيعات</h5>
+                <h2>{{ "%.2f" % total_sales }} ريال</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5>الأرباح المحتملة</h5>
+                <h2>{{ "%.2f" % total_profits }} ريال</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">المنتجات الأكثر مبيعاً</div>
+            <div class="card-body">
+                <canvas id="topChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">الأرباح</div>
+            <div class="card-body">
+                <canvas id="profitsChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">المنتجات على وشك النفاذ</div>
+            <ul class="list-group list-group-flush">
+                {% for item in low_stock %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ item.name }} <span class="badge bg-warning">{{ item.quantity }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <a href="{{ url_for('product_page') }}" class="btn btn-primary w-100 mb-2"><i class="fas fa-plus"></i> إضافة منتج</a>
+        <a href="{{ url_for('stock') }}" class="btn btn-secondary w-100"><i class="fas fa-warehouse"></i> إدارة المخزون</a>
+    </div>
+</div>
+
+<script>
+    // رسم بياني الأسعار
+    new Chart(document.getElementById('topChart'), {
+        type: 'bar',
+        data: { labels: {{ top_names|tojson }}, datasets: [{ label: 'السعر', data: {{ top_prices|tojson }}, backgroundColor: 'rgba(75, 192, 192, 0.2)' }] },
+        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+    });
+    // رسم بياني الأرباح
+    new Chart(document.getElementById('profitsChart'), {
+        type: 'pie',
+        data: { labels: {{ top_names|tojson }}, datasets: [{ data: {{ profits_data|tojson }}, backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'] }] },
+        options: { responsive: true }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<h2><i class="fas fa-file-invoice"></i> الفواتير</h2>
+<a href="{{ url_for('export_invoices') }}" class="btn btn-success mb-3"><i class="fas fa-download"></i> تصدير CSV</a>
+<a href="{{ url_for('purchase') }}" class="btn btn-primary mb-3"><i class="fas fa-plus"></i> شراء جديد</a>
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>المشتري</th>
+                <th>عدد المنتجات</th>
+                <th>الإجمالي</th>
+                <th>الخصم</th>
+                <th>النهائي</th>
+                <th>التاريخ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for purchase in purchases %}
+            <tr>
+                <td>{{ purchase.id }}</td>
+                <td>{{ purchase.customer_name }}</td>
+                <td>{{ purchase.items|length }}</td>
+                <td>{{ "%.2f" % purchase.total_price }} ريال</td>
+                <td>{{ "%.2f" % purchase.discount }} ريال</td>
+                <td>{{ "%.2f" % purchase.final_amount }} ريال</td>
+                <td>{{ purchase.date.strftime('%Y-%m-%d %H:%M') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

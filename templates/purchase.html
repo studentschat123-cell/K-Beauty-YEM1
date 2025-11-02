@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block content %}
+<h2><i class="fas fa-shopping-cart"></i> تسجيل شراء</h2>
+<form method="POST" id="purchaseForm">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+        {{ form.customer_name.label(class="form-label") }}
+        {{ form.customer_name(class="form-control") }}
+    </div>
+    <div class="mb-3">
+        <label class="form-label">اختر المنتجات</label>
+        <select multiple class="form-control" id="productsSelect" size="6">
+            {% for p in products %}
+            <option value="{{ p.id }}" data-name="{{ p.name }}" data-price="{{ p.sell_price }}" data-qty="{{ p.quantity }}">
+                {{ p.name }} - {{ p.sell_price }} ريال ({{ p.quantity }} متاح)
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <table class="table" id="itemsTable">
+            <thead><tr><th>المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th><th>إزالة</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <label class="form-label">الإجمالي</label>
+            <input type="number" class="form-control" id="total" readonly value="0">
+        </div>
+        <div class="col-md-4">
+            {{ form.discount.label(class="form-label") }}
+            {{ form.discount(class="form-control", oninput="calculateFinal()") }}
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">النهائي</label>
+            <input type="number" class="form-control" id="final" readonly value="0">
+        </div>
+    </div>
+    <input type="hidden" name="items" id="itemsJson">
+    {{ form.submit(class="btn btn-success mt-3") }}
+</form>
+
+<script>
+    let cart = [];
+    document.getElementById('productsSelect').addEventListener('change', addToCart);
+    
+    function addToCart() {
+        const selected = Array.from(this.selectedOptions);
+        selected.forEach(opt => {
+            const id = parseInt(opt.value);
+            const existing = cart.find(item => item.id === id);
+            if (!existing) {
+                cart.push({ id, name: opt.dataset.name, price: parseFloat(opt.dataset.price), quantity: 1, maxQty: parseInt(opt.dataset.qty) });
+            }
+        });
+        updateTable();
+    }
+    
+    function updateTable() {
+        const tbody = document.querySelector('#itemsTable tbody');
+        tbody.innerHTML = '';
+        cart.forEach((item, index) => {
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td>${item.name}</td>
+                <td><input type="number" value="${item.quantity}" min="1" max="${item.maxQty}" onchange="updateQty(${index}, this.value)"></td>
+                <td>${item.price}</td>
+                <td id="sub${index}">${(item.price * item.quantity).toFixed(2)}</td>
+                <td><button type="button" class="btn btn-sm btn-danger" onclick="removeItem(${index})">إزالة</button></td>
+            `;
+        });
+        calculateTotal();
+    }
+    
+    function updateQty(index, qty) {
+        cart[index].quantity = parseInt(qty);
+        document.getElementById(`sub${index}`).textContent = (cart[index].price * cart[index].quantity).toFixed(2);
+        calculateTotal();
+    }
+    
+    function removeItem(index) {
+        cart.splice(index, 1);
+        updateTable();
+    }
+    
+    function calculateTotal() {
+        const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        document.getElementById('total').value = total.toFixed(2);
+        calculateFinal();
+        document.getElementById('itemsJson').value = JSON.stringify(cart);
+    }
+    
+    function calculateFinal() {
+        const total = parseFloat(document.getElementById('total').value || 0);
+        const discount = parseFloat(document.querySelector('input[name="discount"]').value || 0);
+        document.getElementById('final').value = (total - discount).toFixed(2);
+    }
+</script>
+{% endblock %}
