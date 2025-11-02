@@ -14,7 +14,7 @@ from io import StringIO
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_super_secret_key_change_this_now'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://kbeauty_db_gqi3_user:UsAe59kHnySRBvde01rkY5fn0lqKXkBw@dpg-d43hrsmr433s739hj68g-a/kbeauty_db_gqi3?sslmode=require'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://kbeauty_db_new_user:dcADHByYxXCbMVT3k95uDTSWPHpiZw5x@dpg-d43idrqdbo4c73akth8g-a.oregon-postgres.render.com/kbeauty_db_new'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
